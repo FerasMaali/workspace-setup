@@ -1,0 +1,15 @@
+[submodule "roles/andrewrothstein.skaffold"]
+	path = roles/andrewrothstein.skaffold
+	url = https://github.com/andrewrothstein/ansible-skaffold.git
+[submodule "roles/andrewrothstein.kubectl"]
+	path = roles/andrewrothstein.kubectl
+	url = https://github.com/andrewrothstein/ansible-kubectl.git
+[submodule "roles/andrewrothstein.minikube"]
+	path = roles/andrewrothstein.minikube
+	url = https://github.com/andrewrothstein/ansible-minikube.git
+[submodule "roles/geerlingguy.java"]
+	path = roles/geerlingguy.java
+	url = https://github.com/geerlingguy/ansible-role-java.git
+[submodule "roles/nickjj.docker"]
+	path = roles/nickjj.docker
+	url = https://github.com/nickjj/ansible-docker.git
