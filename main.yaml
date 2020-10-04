@@ -5,15 +5,29 @@
   become: yes
 
   vars:
-    username: "vagrant"
+    username: "feras"
     home_dir: "/home/{{ username }}"
 
   roles:
-    - andrewrothstein.kubectl
-    - nickjj.docker
-    - andrewrothstein.minikube
-    - geerlingguy.java
-    - andrewrothstein.skaffold
+    - role: andrewrothstein.kubectl
+      tags:
+      - work
+      - kubectl
+      - cp
+
+    - role: nickjj.docker
+      tags: work
+
+    - role: andrewrothstein.minikube
+      tags: work
+
+    - role: geerlingguy.java
+      tags:
+      - work
+      - cp
+
+    - role: andrewrothstein.skaffold
+      tags: work
 
   tasks:
   - name: Format Ansible output
@@ -25,11 +39,15 @@
     loop:
       - {regexp_val: '.*stdout_callback = .*', line_val: 'stdout_callback = yaml'}
       - {regexp_val: '.*bin_ansible_callbacks = .*', line_val: 'bin_ansible_callbacks = True'}
+    tags:
+    - system
 
   - name: Update & Upgrade system
     apt:
       update_cache: yes
       upgrade: full
+    tags:
+    - system
 
   - name: Install required packages
     apt:
@@ -38,16 +56,25 @@
       - git
       - vim
       - python3
+      - python3-venv
+      - python3-dev
       - curl
       - zsh
       - qemu
       - qemu-kvm
-      - libvirt-bin
       - bridge-utils
       - virt-manager
       - tree
       - zip
       - unzip
+      - jq
+      - golang
+      - nodejs
+      - npm
+      - cmake
+      - mono-complete
+    tags:
+    - system
 
   - name: Get Amix vimrc
     git:
@@ -58,12 +85,16 @@
     become: yes
     become_user: "{{ username }}"
     register: getting_amix_result
+    tags:
+    - system
 
   - name: Install Amix vimrc
     shell : "sh ~/.vim_runtime/install_awesome_vimrc.sh"
     become: yes
     become_user: "{{ username }}"
     when: getting_amix_result.changed
+    tags:
+    - system
 
   - name: Create ~/.vim_runtime/my_plugins
     file:
@@ -71,6 +102,8 @@
       state: directory
     become: yes
     become_user: "{{ username }}"
+    tags:
+    - system
 
   - name: Add additional vim plugins
     git:
@@ -80,8 +113,11 @@
     loop:
       - { repo: "https://github.com/ekalinin/dockerfile.vim", dest: "Dockerfile" }
       - { repo: "https://github.com/pearofducks/ansible-vim", dest: "Ansible" }
+      - { repo: "https://github.com/ycm-core/YouCompleteMe", dest: "YouCompleteMe" }
     become: yes
     become_user: "{{ username }}"
+    tags:
+    - system
 
   - name: Add my_configs.vim to amix/vimrc configs
     get_url:
@@ -90,45 +126,53 @@
       mode: "666"
     become: yes
     become_user: "{{ username }}"
+    tags:
+    - system
 
   - name: Get zsh directory
     command: "which zsh"
     register: zsh_dir
     changed_when: False
+    tags:
+    - system
 
   - name: Set zsh as default shell
     user:
       name: "{{ username }}"
       shell: "{{ zsh_dir.stdout }}"
+    tags:
+    - system
 
   - name: Find if Oh-My-Zsh is already installed
     stat:
       path: "{{ home_dir }}/.oh-my-zsh"
     register: oh_my_zsh_dir_info
+    tags:
+    - system
 
   - name: Install Oh-My-Zsh
     shell: sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     become: yes
     become_user: "{{ username }}"
     when: not oh_my_zsh_dir_info.stat.exists
+    tags:
+    - system
 
   - name: Set zsh theme
     lineinfile:
       path: "{{ home_dir }}/.zshrc"
       regexp: ".*ZSH_THEME=.*"
       line: "ZSH_THEME=\"flazz\""
+    tags:
+    - system
 
   - name: Enable zsh plugins
     lineinfile:
       path: "{{ home_dir }}/.zshrc"
       regexp: ".*plugins=.*"
       line: "plugins=(git docker-compose docker vagrant aws kubectl minikube pip)"
-
-  - name: Start and enable libvirtd
-    systemd:
-      name: libvirtd
-      state: started
-      enabled: yes
+    tags:
+    - system
 
   - name: Make sure tmux starts automatically
     blockinfile:
@@ -137,6 +181,8 @@
         if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
           exec tmux
         fi
+    tags:
+    - system
 
   - name: Get some decent tmux.conf file
     get_url:
@@ -144,6 +190,8 @@
       dest: "{{ home_dir }}/.tmux.conf"
     become: yes
     become_user: "{{ username }}"
+    tags:
+    - system
 
   - name: Get .gitconfig
     get_url:
@@ -151,4 +199,31 @@
       dest: "{{ home_dir }}/.gitconfig"
     become: yes
     become_user: "{{ username }}"
+    tags:
+    - system
+
+  - name: Install YCM
+    command:
+      chdir: "{{ home_dir }}/.vim_runtime/my_plugins/YouCompleteMe"
+      cmd: python3 install.py --all
+    tags:
+      - never
+
+  - name: Check if cht.sh is installed
+    command: which cht.sh
+    failed_when: false
+    changed_when: false
+    register: cht_sh_path
+    tags:
+      - system
+
+  - name: Install cht.sh
+    command: |
+      curl https://cht.sh/:cht.sh | sudo tee /usr/local/bin/cht.sh > /dev/null
+      chmod +x /usr/local/bin/cht.sh
+    become: yes
+    become_user: root
+    tags:
+      - system
+    when: "{{ cht_sh_path.rc != 0 }}"
 
