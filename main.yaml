@@ -180,25 +180,6 @@
     tags:
     - system
 
-  - name: Make sure tmux starts automatically
-    blockinfile:
-      path: "{{ home_dir }}/.zshrc"
-      block: |
-        if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
-          exec tmux
-        fi
-    tags:
-    - system
-
-  - name: Get some decent tmux.conf file
-    get_url:
-      url: https://gist.githubusercontent.com/FerasMaali/7344406acbd30a7beb274a841e766733/raw/tmux.conf
-      dest: "{{ home_dir }}/.tmux.conf"
-    become: yes
-    become_user: "{{ username }}"
-    tags:
-    - system
-
   - name: Get .gitconfig
     get_url:
       url: https://gist.githubusercontent.com/FerasMaali/0938b4177c5790fcd389da0829a69b8d/raw/.gitconfig
