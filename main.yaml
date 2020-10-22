@@ -115,7 +115,7 @@
       version: master
     loop:
       - { repo: "https://github.com/ekalinin/dockerfile.vim", dest: "Dockerfile" }
-      - { repo: "https://github.com/pearofducks/ansible-vim", dest: "Ansible" }
+      - { repo: "https://github.com/sheerun/vim-polyglot", dest: "vim-polyglot" }
       - { repo: "https://github.com/ycm-core/YouCompleteMe", dest: "YouCompleteMe" }
       - { repo: "https://github.com/google/vim-maktaba", dest: "maktaba" }
       - { repo: "https://github.com/google/vim-codefmt", dest: "codefmt" }
